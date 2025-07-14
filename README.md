@@ -1,20 +1,25 @@
+[![npm version](https://img.shields.io/npm/v/@velosjs/loaders)](https://www.npmjs.com/package/@velosjs/loaders)
+[![Version](https://img.shields.io/badge/Version-v1.0.0-blue)](https://www.npmjs.com/package/@velosjs/loaders?activeTab=versions)
+[![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/fajardison/velosjs-loaders/blob/main/LICENSE)
+[![ESM](https://img.shields.io/badge/javascript-ESM-orange)](https://nodejs.org/api/esm.html)
+
 # @velosjs/loaders
 
-💡 Koleksi utilitas loader dinamis untuk VelosJS — mendukung pemuatan modul, plugin, file, dan pola wildcard dengan aman dan fleksibel.
+A lightweight utility collection for dynamic loading in **VelosJS** — supports safe and flexible loading of modules, plugins, files, and wildcard patterns.
 
 ---
 
-## ✨ Fitur
+## ✨ Features
 
-- 🔁 Loader modul secara **rekursif**
-- 🎯 Loader file berdasarkan **pattern wildcard**
-- ⚙️ Loader plugin otomatis
-- 📦 Validasi ekstensi file & entri
-- 🚫 Lewati self-import secara otomatis
+- 🔁 Recursive module loading  
+- 🎯 Wildcard pattern file loading  
+- ⚙️ Automatic plugin loader  
+- ✅ File and directory validation  
+- 🚫 Self-import skipping  
 
 ---
 
-## 📦 Instalasi
+## 📦 Installation
 
 ```bash
 npm install @velosjs/loaders
@@ -22,8 +27,9 @@ npm install @velosjs/loaders
 
 ---
 
-🔰 Penggunaan
-Default Import
+## 🚀 Usage
+
+### Default import
 
 ```js
 import loaders from '@velosjs/loaders'
@@ -31,62 +37,87 @@ import loaders from '@velosjs/loaders'
 await loaders.recursiveModuleLoader(app, ['./plugins'])
 ```
 
-Named Import
+### Named import
 
 ```js
-import { recursiveModuleLoader } from '@velosjs/loaders'
-
-await recursiveModuleLoader(app, ['./plugins'])
+import {
+  recursiveModuleLoader,
+  fileLoader,
+  patternFileLoader,
+  pluginsLoader
+} from '@velosjs/loaders'
 ```
 
 ---
 
-🧩 API
-**_`recursiveModuleLoader(app, dirs, onLoad?)`_**
-Memuat semua modul JS dari direktori secara rekursif.
+## 📘 API Reference
+
+### `recursiveModuleLoader(app, dirs, onLoad?)`
+
+Recursively loads JavaScript modules from one or more directories.
 
 ```js
 await recursiveModuleLoader(app, ['./plugins', './modules'])
 ```
 
-**_`app.register(fn)`_** akan dipanggil jika tersedia
-**_`onLoad(fn, fullPath, filename)`_** bisa digunakan sebagai alternatif
+- Calls `app.register(fn)` if available  
+- Optional `onLoad(mod, fullPath, filename)` callback  
 
-**_`fileLoader(baseDir, filenames)`_**
-Memuat satu atau beberapa file .js, .json, dan lainnya.
+---
+
+### `fileLoader(baseDir, filenames)`
+
+Loads one or more files (.js, .json, etc.) from a specified directory.
+
 ```js
-const config = await fileLoader('./configs', 'settings.json')
+const config = await fileLoader('./config', 'settings.json')
 ```
 
-**_`patternFileLoader(baseDir, pattern)`_**
-Memuat semua file yang cocok dengan pola wildcard (**_`*.plugin.js`_**, dsb).
+---
+
+### `patternFileLoader(baseDir, pattern)`
+
+Loads all files that match a wildcard pattern (non-recursive).
 
 ```js
 const modules = await patternFileLoader('./modules', '*.plugin.js')
 ```
 
-**_`pluginsLoader(app, pluginPath)`_**
-Loader khusus untuk satu file plugin utama (biasanya **_`plugins.js`_**).
+---
+
+### `pluginsLoader(config, server, baseDir, pathResolver)`
+
+Dynamically loads plugins defined in `config.pluginSources`. Supports:
+
+- `inline`: direct handler function  
+- `file`: path to a single plugin file  
+- `folder`: load all `.js` files from a directory  
+- `url`: not supported yet (reserved for future)  
+
+Example usage:
+
+```js
+await pluginsLoader(config, server, process.cwd(), (base, rel) => path.join(base, rel))
+```
 
 ---
 
-## 🔧 Komponen Lain
-**_`validateExtensions(entryName)`_**
+## 🛠️ Utilities
 
-**_`shouldLoadEntry(entryName)`_**
-
-**_`notAllowedLoader`_** – daftar entri yang tidak boleh dimuat
-
-**_`SelfImportHandler`_** – untuk deteksi self-import modul loader
+- `validateExtensions(filename)` — validate file extensions  
+- `isAllowedLoader(entryName)` — check if a file/folder name is allowed  
+- `notAllowedLoader` — list of disallowed filenames (e.g. `.git`, `node_modules`)  
+- `SelfImportHandler` — utility to prevent loaders from importing themselves  
 
 ---
 
 ## 👤 Author
-* Nama: Dimas Fajar
 
-* GitHub: @fajardison
+**Dimas Fajar**  
+[GitHub @fajardison](https://github.com/fajardison)
 
 ---
 
-## ⚖️ Lisensi
-* MIT
+## ⚖️ License
+
+This project is licensed under the **MIT License**.
