@@ -1,8 +1,14 @@
 /**
- * Daftar ekstensi file yang diperbolehkan untuk dimuat oleh loader.
+ * Allowed file extensions for dynamic loading.
  *
- * - jsModule: ekstensi untuk modul JavaScript.
- * - json: ekstensi untuk file JSON.
+ * - `jsModule`: JavaScript module files (.js, .mjs, .cjs)
+ * - `json`: JSON configuration files (.json)
+ *
+ * Used to validate files before importing or reading with loaders.
+ *
+ * @example
+ * allowedExtensions.jsModule.includes('.mjs') // true
+ * allowedExtensions.json.includes('.yaml')    // false
  */
 const allowedExtensions = {
   jsModule: ['.js', '.mjs', '.cjs'],
