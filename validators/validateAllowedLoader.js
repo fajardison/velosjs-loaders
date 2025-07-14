@@ -1,14 +1,19 @@
 import notAllowedLoader from '../constants/notAllowedLoader.js'
 
 /**
- * Mengecek apakah nama folder diperbolehkan.
+ * Determines whether a loader entry (file/folder) is allowed to be loaded.
  *
- * @param {string} folderName - Nama folder (bukan path penuh).
- * @param {object} [options]
- * @param {boolean} [options.ignoreCase=true] - Abaikan huruf kapital.
- * @param {boolean} [options.skipHidden=true] - Lewati folder tersembunyi (awalan ".").
- * @returns {boolean}
+ * This function checks:
+ * - If the name exists in the forbidden list (`notAllowedLoader`)
+ * - If the entry is hidden (starts with "."), when `skipHidden` is enabled
+ *
+ * @param {string} folderName - Entry name (file or folder name, not full path).
+ * @param {object} [options] - Optional flags for validation.
+ * @param {boolean} [options.ignoreCase=true] - Ignore case when comparing names.
+ * @param {boolean} [options.skipHidden=true] - Skip entries starting with a dot (`.`).
+ * @returns {boolean} Returns `true` if the entry is allowed; otherwise `false`.
  */
+
 export default function isAllowedLoader(folderName, options = {}) {
   if (typeof folderName !== 'string') return false
 
@@ -18,15 +23,13 @@ export default function isAllowedLoader(folderName, options = {}) {
   } = options
 
   const name = ignoreCase ? folderName.toLowerCase() : folderName
-
-  // Tolak jika hidden folder
+  
   if (skipHidden && name.startsWith('.')) {
     return false
   }
 
-  // Tolak jika nama folder masuk daftar blacklist
   return !notAllowedLoader.some(forbidden => {
     const blockedName = ignoreCase ? forbidden.toLowerCase() : forbidden
     return name === blockedName
   })
-    }
+}
