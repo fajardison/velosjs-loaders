@@ -2,16 +2,13 @@
   "name": "@velosjs/loaders",
   "version": "1.0.0",
   "type": "module",
-  "main": "./index.js",
   "exports": {
-    "./file": "./loaders/fileLoader.js",
-    "./modulesRec": "./loaders/recursiveModuleLoader.js",
-    "./pattern": "./loaders/patternFileLoader.js",
-    "./plugins": "./loaders/pluginsLoader.js"
+    ".": "./index.js"
   },
   "files": [
     "loaders/",
     "constants/",
+    "validators/",
     "utils/",
     "index.js"
   ],
@@ -20,15 +17,24 @@
   },
   "author": "Dimas Fajar",
   "license": "MIT",
+  "description": "Modul loader modular untuk VelosJS, mendukung file, pattern, recursive, dan plugin system berbasis ESM.",
   "homepage": "https://github.com/fajardison/velosjs-loaders",
   "repository": {
     "type": "git",
     "url": "https://github.com/fajardison/velosjs-loaders.git"
   },
+  "bugs": {
+    "url": "https://github.com/fajardison/velosjs-loaders/issues"
+  },
   "keywords": [
     "velosjs",
     "loader",
     "plugin",
-    "dynamic-import"
+    "file-loader",
+    "dynamic-import",
+    "recursive-loader",
+    "pattern-loader",
+    "modular",
+    "esm"
   ]
 }
