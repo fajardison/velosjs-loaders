@@ -5,17 +5,18 @@ import validateExtensions from '../validators/validateExtensions.js'
 import { SelfImportHandler } from '../utils/selfImportHandler.js'
 
 /**
- * Memuat satu atau beberapa file (.js, .mjs, .cjs, .json).
- * File loader ini sendiri akan dilewati secara otomatis.
+ * Dynamically loads one or more files (.js, .mjs, .cjs, .json) from a given directory.
+ * Automatically skips self-imports and validates file extensions.
  *
- * @param {string} baseDir - Direktori dasar tempat file berada.
- * @param {string|string[]} filenames - Nama file atau array file yang akan dimuat.
- * @returns {Promise<any|any[]>} - Isi file JSON atau modul default.
- * @throws {Error} - Jika file tidak ditemukan atau ekstensi tidak valid.
+ * @param {string} baseDir - The base directory where the file(s) are located.
+ * @param {string|string[]} filenames - A filename or array of filenames to load.
+ * @returns {Promise<any|any[]>} The loaded content (JSON or default module exports).
+ *
+ * @throws {Error} If the file is not found or has an invalid extension.
  */
 export default async function fileLoader(baseDir, filenames) {
   const loaderUrl = import.meta.url
-  // Buat instance SelfImportHandler untuk fileLoader ini
+
   const selfImportHandler = new SelfImportHandler({
     loaderUrl,
     loaderFunctionName: 'fileLoader'
@@ -28,7 +29,7 @@ export default async function fileLoader(baseDir, filenames) {
     try {
       await fs.access(fullPath)
     } catch {
-      throw new Error(`❌ File tidak ditemukan: ${fullPath}`)
+      throw new Error(`File not found: ${fullPath}`)
     }
 
     if (type === 'json') {
@@ -37,9 +38,8 @@ export default async function fileLoader(baseDir, filenames) {
 
     const mod = await import(pathToFileURL(fullPath).href)
 
-    // Gunakan selfImportHandler untuk cek self-import
     if (selfImportHandler.shouldSkip(fullPath, mod)) {
-      console.warn(`⚠️ Lewati self-import: ${filename}`)
+      console.warn(`⚠️ Skipping self-import: ${filename}`)
       return null
     }
 
@@ -52,8 +52,8 @@ export default async function fileLoader(baseDir, filenames) {
 
   if (Array.isArray(filenames)) {
     const results = await Promise.all(filenames.map(loadOne))
-    return results.filter((r) => r !== null)
+    return results.filter(r => r !== null)
   }
 
-  throw new Error('❌ Parameter "filenames" harus berupa string atau array.')
+  throw new Error('Invalid argument: "filenames" must be a string or an array of strings.')
 }
