@@ -4,13 +4,19 @@ import { pathToFileURL } from 'url'
 import { SelfImportHandler } from '../utils/selfImportHandler.js'
 
 /**
- * Loader plugin fleksibel.
- * Developer bisa menambahkan plugin dari berbagai sumber melalui `config.pluginSources`.
+ * Dynamically loads plugins from multiple configurable sources.
+ * Supports inline handlers, local files, or folders.
  *
- * @param {object} config - Konfigurasi aplikasi.
- * @param {object} server - Objek server, biasanya Fastify instance.
- * @param {string} baseDir - Direktori dasar proyek.
- * @param {(baseDir: string, filePath: string) => string} pathResolver - Fungsi untuk resolusi path.
+ * Plugin sources should be defined in `config.pluginSources` with one of the following types:
+ * - `inline`: Directly executes a handler function.
+ * - `file`: Imports and registers a plugin module from a file.
+ * - `folder`: Loads and registers all `.js` files within a folder.
+ * - `url`: Currently not supported (warning only).
+ *
+ * @param {object} config - Application config object containing `pluginSources`.
+ * @param {object} server - Server instance (e.g., Fastify).
+ * @param {string} baseDir - Root directory of the project.
+ * @param {(baseDir: string, filePath: string) => string} pathResolver - Resolves relative plugin paths to absolute paths.
  */
 export default async function pluginsLoader(config, server, baseDir, pathResolver) {
   const selfImportHandler = new SelfImportHandler({
@@ -38,6 +44,7 @@ export default async function pluginsLoader(config, server, baseDir, pathResolve
         case 'folder': {
           const folderPath = pathResolver(baseDir, source.path)
           const entries = await fs.readdir(folderPath, { withFileTypes: true })
+
           for (const entry of entries) {
             if (entry.isFile() && entry.name.endsWith('.js')) {
               const filePath = path.join(folderPath, entry.name)
@@ -52,42 +59,41 @@ export default async function pluginsLoader(config, server, baseDir, pathResolve
           break
         }
 
-        case 'url': {
-          console.warn(`[pluginsLoader] Loader dari URL belum didukung secara default: ${source.path}`)
+        case 'url':
+          console.warn(`[pluginsLoader] Plugin loading from URL is not supported: ${source.path}`)
           break
-        }
 
         default:
-          console.warn(`[pluginsLoader] Tipe plugin tidak dikenali: ${source.type}`)
+          console.warn(`[pluginsLoader] Unknown plugin type: ${source.type}`)
       }
     } catch (err) {
-      console.error(`[pluginsLoader] Gagal memuat plugin (${source.type}): ${source.path || 'inline'}:`, err)
+      console.error(`[pluginsLoader] Failed to load plugin (${source.type}): ${source.path || 'inline'}`, err)
     }
   }
 }
 
 /**
- * Import file modul dan daftarkan ke `server.instance.register`,
- * sekaligus lewati jika file adalah self-import.
+ * Registers a plugin module from a file using `server.instance.register`.
+ * Skips the module if it is the loader itself (self-import).
  *
- * @param {object} server - Objek server (Fastify).
- * @param {string} fullPath - Path absolut file plugin.
- * @param {string} [nameHint] - Nama referensi untuk log kesalahan.
- * @param {SelfImportHandler} [selfImportHandler] - Objek pemeriksa self-import.
+ * @param {object} server - Server instance (e.g., Fastify).
+ * @param {string} fullPath - Absolute file path to the plugin module.
+ * @param {string} [nameHint] - Optional name for logging and debugging.
+ * @param {SelfImportHandler} [selfImportHandler] - Instance to check and skip self-imports.
  */
 async function registerPluginFromFile(server, fullPath, nameHint = '', selfImportHandler) {
   try {
     const { default: mod } = await import(pathToFileURL(fullPath).href)
 
     if (selfImportHandler?.shouldSkip(fullPath, mod)) {
-      console.warn(`[pluginsLoader] Lewati self-import: ${nameHint}`)
+      console.warn(`[pluginsLoader] Skipped self-import: ${nameHint}`)
       return
     }
 
     if (typeof mod === 'function') {
       await server.instance.register(mod)
     }
-  } catch (e) {
-    console.error(`[pluginsLoader] Gagal import plugin "${nameHint}":`, e)
+  } catch (err) {
+    console.error(`[pluginsLoader] Failed to import plugin "${nameHint}":`, err)
   }
 }
