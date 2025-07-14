@@ -1,0 +1,34 @@
+{
+  "name": "@velosjs/loaders",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    "./file": "./loaders/fileLoader.js",
+    "./modulesRec": "./loaders/recursiveModuleLoader.js",
+    "./pattern": "./loaders/patternFileLoader.js",
+    "./plugins": "./loaders/pluginsLoader.js"
+  },
+  "files": [
+    "loaders/",
+    "constants/",
+    "utils/",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "node ./sample/index.js"
+  },
+  "author": "Dimas Fajar",
+  "license": "MIT",
+  "homepage": "https://github.com/fajardison/-velosjs-loaders",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fajardison/-velosjs-loaders.git"
+  },
+  "keywords": [
+    "velosjs",
+    "loader",
+    "plugin",
+    "dynamic-import"
+  ]
+}
