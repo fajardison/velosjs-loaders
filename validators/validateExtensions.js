@@ -1,23 +1,30 @@
-// validators/validateExtensions.js
-
 import allowedExtensions from '../constants/allowedExtensions.js'
 
 /**
- * Validasi ekstensi file dan kembalikan jenisnya (type).
+ * Validates the file extension and returns its type category.
  *
- * @param {string} filename - Nama file yang akan divalidasi.
- * @returns {{ ext: string, type: string }} - Ekstensi dan tipe file.
- * @throws {Error} Jika filename bukan string, tidak memiliki ekstensi,
- *         atau ekstensi tidak termasuk yang diizinkan.
+ * Matches the file extension against the allowedExtensions config.
+ *
+ * @param {string} filename - The filename (must include an extension).
+ * @returns {{ ext: string, type: string }} - The matched extension and its type.
+ *
+ * @throws {Error} If:
+ *   - `filename` is not a string
+ *   - No extension is found in the filename
+ *   - The extension is not supported
+ *
+ * @example
+ * validateExtensions("config.json")
+ * // → { ext: ".json", type: "json" }
  */
 export default function validateExtensions(filename) {
   if (typeof filename !== 'string') {
-    throw new Error('❌ Parameter "filename" harus berupa string.')
+    throw new Error('Invalid argument: "filename" must be a string.')
   }
 
   const dotIndex = filename.lastIndexOf('.')
   if (dotIndex === -1) {
-    throw new Error(`❌ File "${filename}" tidak memiliki ekstensi.`)
+    throw new Error(`Missing extension: "${filename}" has no file extension.`)
   }
 
   const ext = filename.slice(dotIndex)
@@ -29,5 +36,5 @@ export default function validateExtensions(filename) {
   }
 
   const allowedList = Object.values(allowedExtensions).flat().join(', ')
-  throw new Error(`❌ Ekstensi "${ext}" tidak didukung. Gunakan: ${allowedList}`)
+  throw new Error(`Unsupported extension: "${ext}" is not allowed. Supported extensions: ${allowedList}`)
 }
