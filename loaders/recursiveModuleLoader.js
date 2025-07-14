@@ -6,14 +6,17 @@ import isAllowedLoader from '../validators/validateAllowedLoader.js'
 import { SelfImportHandler } from '../utils/selfImportHandler.js'
 
 /**
- * Memuat modul dari direktori secara rekursif.
- * Modul JS yang valid akan di-import dan:
- * - Didaftarkan ke app (jika `app.register` tersedia), atau
- * - Diproses oleh callback `onLoad`.
+ * Recursively loads JavaScript modules from one or more directories.
  *
- * @param {object} app - Objek aplikasi.
- * @param {string|string[]} dirs - Direktori atau array direktori.
- * @param {(mod: Function, fullPath: string, filename: string) => Promise<void>} [onLoad] - Callback opsional saat modul ditemukan.
+ * For each valid file:
+ * - If `onLoad` is provided, it will be called with (mod, fullPath, filename)
+ * - Otherwise, if `app.register` is a function, the module will be registered.
+ *
+ * Automatically skips self-imports to prevent infinite loops.
+ *
+ * @param {object} app - The application object.
+ * @param {string|string[]} dirs - One or more directory paths.
+ * @param {(mod: Function, fullPath: string, filename: string) => Promise<void>} [onLoad] - Optional callback when a module is loaded.
  */
 export default async function recursiveModuleLoader(app, dirs, onLoad = null) {
   if (!Array.isArray(dirs)) dirs = [dirs]
@@ -31,6 +34,16 @@ export default async function recursiveModuleLoader(app, dirs, onLoad = null) {
   }
 }
 
+/**
+ * Helper function to recursively scan and load modules from a directory.
+ *
+ * @param {object} app - Application object passed from the main loader.
+ * @param {string} currentDir - Current directory being scanned.
+ * @param {string} baseDir - Root directory for relative path tracking.
+ * @param {Function|null} onLoad - Optional callback when module is found.
+ * @param {Set<string>} visited - Set of already visited directories.
+ * @param {SelfImportHandler} selfImportHandler - Self-import guard.
+ */
 async function loadFromDir(app, currentDir, baseDir, onLoad, visited, selfImportHandler) {
   if (visited.has(currentDir)) return
   visited.add(currentDir)
@@ -39,7 +52,7 @@ async function loadFromDir(app, currentDir, baseDir, onLoad, visited, selfImport
   try {
     entries = await fs.readdir(currentDir, { withFileTypes: true })
   } catch {
-    console.warn(`⚠️ Tidak bisa membaca direktori: ${currentDir}`)
+    console.warn(`⚠️ Cannot read directory: ${currentDir}`)
     return
   }
 
@@ -60,14 +73,14 @@ async function loadFromDir(app, currentDir, baseDir, onLoad, visited, selfImport
     try {
       ({ type } = validateExtensions(relativePath))
     } catch {
-      continue
+      continue // Skip unsupported extension
     }
 
     try {
       const { default: mod } = await import(pathToFileURL(fullPath).href)
 
       if (selfImportHandler.shouldSkip(fullPath, mod)) {
-        console.warn(`⚠️ Lewati "${entry.name}" karena self-import`)
+        console.warn(`⚠️ Skipped "${entry.name}" due to self-import`)
         continue
       }
 
@@ -77,11 +90,11 @@ async function loadFromDir(app, currentDir, baseDir, onLoad, visited, selfImport
         } else if (typeof app.register === 'function') {
           await app.register(mod)
         } else {
-          console.warn(`⚠️ app.register() tidak ditemukan. Lewati file "${entry.name}"`)
+          console.warn(`⚠️ app.register() not found. Skipped file "${entry.name}"`)
         }
       }
     } catch (err) {
-      console.warn(`⚠️ Lewati "${fullPath}" karena error:\n${err.message}`)
+      console.warn(`⚠️ Failed to load "${fullPath}":\n${err.message}`)
     }
   }
 }
