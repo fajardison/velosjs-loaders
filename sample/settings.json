@@ -1,0 +1,15 @@
+{
+  "baseDir": ".",
+  "environment": {
+    "debug": false
+  },
+  "server": {
+    "mode": "production",
+    "maintenance": {
+      "enabled": false
+    }
+  },
+  "resolve": {
+    "exportFiles": []
+  }
+}
